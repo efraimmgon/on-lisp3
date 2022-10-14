@@ -48,7 +48,7 @@
 
 (defn longer?
   "Compares the length of two collections and returns true if the first 
-   is longer."
+	 is longer."
   [x y]
   (letfn [(compare [x y]
             (and (seq x)
@@ -92,7 +92,7 @@
 
 (defn prune
   "Returns a sequence with every leaf for wich the test function returns 
-   true removed."
+	 true removed."
   [test tree]
   (letfn [(rec [tree acc]
             (cond (nil? tree) (reverse acc)
@@ -115,7 +115,7 @@
 
 (defn find2
   "Returns the a vec of the element and (f elt) of the first occurrence 
-   that returns true."
+	 that returns true."
   [f lst]
   (when (seq lst)
     (let [val (f (first lst))]
@@ -179,3 +179,113 @@
 #_(split-if #(> % 4) (range 10))
 #_(split-with (partial > 4) (range 10))
 #_(split-with #(> % 4) (range 10))
+
+;; On Lisp implementation
+(defn most
+  "Takes a scoring function and a sequence and returns the element with the 
+	 highest score and the its score."
+  [f lst]
+  (if (seq lst)
+    (loop [wins (first lst)
+           max (f wins)
+           lstt (rest lst)]
+      (if (seq lstt)
+        (let [[obj & more] lstt
+              score (f obj)]
+          (if (> score max)
+            (recur obj score more)
+            (recur wins max more)))
+        [wins max]))
+    [nil nil]))
+
+;; Improved implementation
+(defn most
+  "Takes a scoring function and a sequence and returns the element with the 
+	 highest score and the its score."
+  [f lst]
+  (if (seq lst)
+    (->> lst
+         (map (fn [x]
+                [x (f x)]))
+         (reduce (fn [[wins max :as a] [obj score :as b]]
+                   (if (> score max)
+                     b
+                     a))))
+    [nil nil]))
+
+
+#_(most count [[1 2] [1 2 3] [1] [1 2 3]])
+
+;; Original implementation
+; - We can thing of best as being equivalent to car of `sort`, but much more
+; efficient.
+(defn best
+  "Takes a predicate of two args and a sequence and returns the element which,
+	 according to the predicate, beats all the others."
+  [f lst]
+  (when (seq lst)
+    (loop [wins (first lst)
+           lst (rest lst)]
+      (if (seq lst)
+        (let [[obj & more] lst]
+          (if (f obj wins)
+            (recur obj more)
+            (recur wins more)))
+        wins))))
+
+;; Improved implementation
+(defn best
+  "Takes a predicate of two args and a sequence and returns the element which,
+	 according to the predicate, beats all the others."
+  [f lst]
+  (reduce (fn [wins obj]
+            (if (f obj wins)
+              obj
+              wins))
+          (first lst) (rest lst)))
+
+#_(best > (range 5))
+
+;; Original implementation
+(defn mostn
+  "Returns a list of all the elements for which the function yields the highest 
+   score, according to `f`."
+  [f lst]
+  (if (seq lst)
+    (loop [result (list (first lst))
+           max (f (first lst))
+           remain (rest lst)]
+      (if (seq remain)
+        (let [[obj & more] remain
+              score (f obj)]
+          (cond
+            (> score max)
+            (recur (list obj) score more)
+
+            (= score max)
+            (recur (conj result obj) max more)
+
+            :else (recur result max more)))
+        [(reverse result) max]))
+    [nil nil]))
+
+;; Improved implementation
+(defn mostn
+  "Returns a list of all the elements for which the function yields the highest 
+   score, according to `f`."
+  [f lst]
+  (if (seq lst)
+    (let [[[result max] & more] (for [x lst] [x (f x)])]
+      (reduce (fn [[result max :as a] [obj score :as b]]
+                (cond
+                  (> score max)
+                  [[obj] score]
+
+                  (= score max)
+                  [(conj result obj) max]
+
+                  :else a))
+              [[result] max] more))
+    [nil nil]))
+
+#_(mostn count [[1 2] [1 2 3] [1] [1 2 3]])

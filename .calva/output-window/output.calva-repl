@@ -90,3 +90,143 @@ clj꞉on-lisp.chap04꞉> 
 clj꞉on-lisp.chap04꞉> 
 [(0 1 2 3) (4 5 6 7 8 9)]
 clj꞉on-lisp.chap04꞉> 
+#'on-lisp.chap04/most
+clj꞉on-lisp.chap04꞉> 
+; Evaluating file: chap04.clj
+; nREPL Connection was closed
+; Jacking in...
+; Starting Jack-in Terminal: clojure -Sdeps '{:deps {nrepl/nrepl {:mvn/version,"1.0.0"},cider/cider-nrepl {:mvn/version,"0.28.5"}}}' -M -m nrepl.cmdline --middleware "[cider.nrepl/cider-middleware]"
+; Hooking up nREPL sessions...
+; Connected session: clj
+; TIPS:
+;   - You can edit the contents here. Use it as a REPL if you like.
+;   - `alt+enter` evaluates the current top level form.
+;   - `ctrl+enter` evaluates the current form.
+;   - `alt+up` and `alt+down` traverse up and down the REPL command history
+;      when the cursor is after the last contents at the prompt
+;   - Clojure lines in stack traces are peekable and clickable.
+clj꞉user꞉> 
+; Jack-in done.
+clj꞉user꞉> 
+; Evaluating file: chap04.clj
+#'on-lisp.chap04/best
+clj꞉on-lisp.chap04꞉> 
+; nREPL Connection was closed
+; Jacking in...
+; Starting Jack-in Terminal: clojure -Sdeps '{:deps {nrepl/nrepl {:mvn/version,"1.0.0"},cider/cider-nrepl {:mvn/version,"0.28.5"}}}' -M -m nrepl.cmdline --middleware "[cider.nrepl/cider-middleware]"
+; Hooking up nREPL sessions...
+; Connected session: clj
+; TIPS:
+;   - You can edit the contents here. Use it as a REPL if you like.
+;   - `alt+enter` evaluates the current top level form.
+;   - `ctrl+enter` evaluates the current form.
+;   - `alt+up` and `alt+down` traverse up and down the REPL command history
+;      when the cursor is after the last contents at the prompt
+;   - Clojure lines in stack traces are peekable and clickable.
+clj꞉user꞉> 
+; Jack-in done.
+clj꞉user꞉> 
+; Evaluating file: chap04.clj
+#'on-lisp.chap04/best
+clj꞉on-lisp.chap04꞉> 11
+; nREPL Connection was closed
+; Jacking in...
+; Starting Jack-in Terminal: clojure -Sdeps '{:deps {nrepl/nrepl {:mvn/version,"1.0.0"},cider/cider-nrepl {:mvn/version,"0.28.5"}}}' -M -m nrepl.cmdline --middleware "[cider.nrepl/cider-middleware]"
+; Hooking up nREPL sessions...
+; Connected session: clj
+; TIPS:
+;   - You can edit the contents here. Use it as a REPL if you like.
+;   - `alt+enter` evaluates the current top level form.
+;   - `ctrl+enter` evaluates the current form.
+;   - `alt+up` and `alt+down` traverse up and down the REPL command history
+;      when the cursor is after the last contents at the prompt
+;   - Clojure lines in stack traces are peekable and clickable.
+clj꞉user꞉> 
+; Jack-in done.
+clj꞉user꞉> 
+; Evaluating file: chap04.clj
+; Syntax error (UnsupportedOperationException) compiling recur at (src/on_lisp/chap04.clj:195:13).
+; Can only recur from tail position
+; Evaluation of file chap04.clj failed: class clojure.lang.Compiler$CompilerException
+clj꞉on-lisp.chap04꞉> 
+; Evaluating file: chap04.clj
+; Syntax error (UnsupportedOperationException) compiling recur at (src/on_lisp/chap04.clj:195:13).
+; Can only recur from tail position
+; Evaluation of file chap04.clj failed: class clojure.lang.Compiler$CompilerException
+clj꞉on-lisp.chap04꞉> 
+1
+1
+clj꞉on-lisp.chap04꞉> 
+#'on-lisp.chap04/most
+clj꞉on-lisp.chap04꞉> 
+; Execution error (UnsupportedOperationException) at on-lisp.chap04/most (REPL:193).
+; count not supported on this type: Long
+clj꞉on-lisp.chap04꞉> 
+clojure.lang.RT/countFrom (RT.java:671)
+clojure.lang.RT/count (RT.java:643)
+clojure.core/count (core.clj:882)
+clojure.core/count (core.clj:876)
+on-lisp.chap04/most (NO_SOURCE_FILE:193)
+on-lisp.chap04/most (NO_SOURCE_FILE:183)
+on-lisp.chap04/eval7611 (NO_SOURCE_FILE:200)
+clojure.lang.Compiler/eval (Compiler.java:7181)
+clojure.core/eval (core.clj:3202)
+clojure.core/eval (core.clj:3198)
+nrepl.middleware.interruptible-eval/evaluate (interruptible_eval.clj:87)
+clojure.core/apply (core.clj:667)
+clojure.core/with-bindings* (core.clj:1977)
+nrepl.middleware.interruptible-eval/evaluate (interruptible_eval.clj:87)
+clojure.main/repl (main.clj:437)
+clojure.main/repl (main.clj:458)
+clojure.main/repl (main.clj:368)
+nrepl.middleware.interruptible-eval/evaluate (interruptible_eval.clj:84)
+nrepl.middleware.interruptible-eval/evaluate (interruptible_eval.clj:56)
+nrepl.middleware.interruptible-eval/interruptible-eval (interruptible_eval.clj:152)
+nrepl.middleware.session/session-exec (session.clj:218)
+nrepl.middleware.session/session-exec (session.clj:217)
+java.lang.Thread/run (Thread.java:745)
+clj꞉on-lisp.chap04꞉> 
+#'on-lisp.chap04/most
+clj꞉on-lisp.chap04꞉> 
+[[1 2 3] 3]
+clj꞉on-lisp.chap04꞉> 
+#'on-lisp.chap04/most
+clj꞉on-lisp.chap04꞉> 
+[[1 2 3] 3]
+clj꞉on-lisp.chap04꞉> 
+#'on-lisp.chap04/best
+clj꞉on-lisp.chap04꞉> 
+4
+clj꞉on-lisp.chap04꞉> 
+#'on-lisp.chap04/best
+clj꞉on-lisp.chap04꞉> 
+4
+clj꞉on-lisp.chap04꞉> 
+#'on-lisp.chap04/mostn
+clj꞉on-lisp.chap04꞉> 
+nil
+clj꞉on-lisp.chap04꞉> 
+#'on-lisp.chap04/mostn
+clj꞉on-lisp.chap04꞉> 
+[([1 2 3] [1 2 3]) 3]
+clj꞉on-lisp.chap04꞉> 
+#'on-lisp.chap04/mostn
+clj꞉on-lisp.chap04꞉> 
+[([1 2 3] 3) 3]
+clj꞉on-lisp.chap04꞉> 
+#'on-lisp.chap04/mostn
+clj꞉on-lisp.chap04꞉> 
+[([1 2 3] [1 2 3]) 3]
+clj꞉on-lisp.chap04꞉> 
+#'on-lisp.chap04/mostn
+clj꞉on-lisp.chap04꞉> 
+[([1 2 3] [1 2 3]) 3]
+clj꞉on-lisp.chap04꞉> 
+#'on-lisp.chap04/mostn
+clj꞉on-lisp.chap04꞉> 
+[([1 2 3] [1 2 3]) 3]
+clj꞉on-lisp.chap04꞉> 
+#'on-lisp.chap04/mostn
+clj꞉on-lisp.chap04꞉> 
+[[[1 2 3] [1 2 3]] 3]
+clj꞉on-lisp.chap04꞉> 
