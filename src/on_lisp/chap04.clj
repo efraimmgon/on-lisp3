@@ -368,3 +368,15 @@
       (recur (apply prompt args)))))
 
 #_(break-loop eval #(= % :q) "custom-repl>> ")
+
+;;; ----------------------------------------------------------------------------
+;;; Symbols and Strings
+
+(defn explode
+  "Takes a symbol and returns a list of symbols made from the characters 
+   in its name."
+  [sym]
+  (map (comp symbol str)
+       (str sym)))
+
+#_(explode 'bomb)
