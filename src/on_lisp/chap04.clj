@@ -331,3 +331,40 @@
            args)))
 
 #_(rmap + [1 [2 [3] 4]] [10 [20 [30] 40]])
+
+;;; ----------------------------------------------------------------------------
+;;; I/O
+
+(defn readlist
+  "Reads a line of input and returns it as a list - for the case where you 
+   want users to be able to type in expressions without parentheses."
+  [& args]
+  (read-string
+   (str "(" (read-line) ")")))
+
+#_(readlist)
+; Call me "Ed"
+; => (Call me "Ed")
+
+(defn prompt
+  "Takes the argument to printf. Combines printing a question and reading 
+   the answer."
+  [& args]
+  (apply printf args)
+  (read))
+
+#_(prompt "Enter a number between %d and %d.%n" 1 10)
+
+(defn break-loop
+  "For situations where you want to imitate clj's toplevel. It takes two 
+   functions and a rest argument, which is repreatedly given to `prompt`. 
+   As long as the second function returns false for the input, the first 
+   function is applied to it."
+  [f quit & args]
+  (println "Entering break-loop.")
+  (loop [in (apply prompt args)]
+    (when-not (quit in)
+      (prn (f in))
+      (recur (apply prompt args)))))
+
+#_(break-loop eval #(= % :q) "custom-repl>> ")
