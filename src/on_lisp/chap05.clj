@@ -69,3 +69,38 @@
 
 #_(filter (fun :signed :sealed :delivered)
           docs)
+
+;;; ----------------------------------------------------------------------------
+;;; Recursion on Cdrs
+
+(defn lrec
+  "List recursion. Takes a function of two arguments: the current car of 
+   the list, and a function which can be called to continue the recursion.
+   The second optional argument is the base fn or value to be accumulated."
+  ([rec]
+   (lrec rec nil))
+  ([rec base]
+   (letfn [(self [lst]
+             (if (seq lst)
+               (rec (first lst)
+                    #(self (rest lst)))
+               (if (fn? base)
+                 (base)
+                 base)))]
+     self)))
+
+;; count
+#_((lrec (fn [x f] (inc (f)))
+         0)
+   [:a :b :c])
+
+;; our-every
+#_((lrec (fn [x f] (and (odd? x) (f)))
+         true)
+   [1 3 5 7])
+
+;; remove-duplicates
+#_((lrec (fn [x f] (conj (f) x))
+         #{})
+   [1 1 2 2 3 3])
+
