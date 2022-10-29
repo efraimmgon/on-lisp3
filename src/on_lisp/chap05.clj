@@ -1,4 +1,6 @@
-(ns on-lisp.chap05)
+(ns on-lisp.chap05
+  (:require
+   [on-lisp.utils :as utils]))
 
 ;;; ----------------------------------------------------------------------------
 ;;; 5
@@ -104,3 +106,76 @@
          #{})
    [1 1 2 2 3 3])
 
+;;; ----------------------------------------------------------------------------
+;;; Recursion on Subtrees
+
+(defn count-leaves [tree]
+  (if (utils/atom? tree)
+    1
+    (+ (count-leaves (first tree))
+       (or (when (next tree)
+             (count-leaves (rest tree)))
+           1))))
+
+#_(count-leaves '[[a b [c d]] [e] f])
+
+(defn rfind-if [f tree]
+  (if (utils/atom? tree)
+    (and (f tree) tree)
+    (or (rfind-if f (first tree))
+        (if (next tree)
+          (rfind-if f (next tree))))))
+
+#_(rfind-if (fint number? odd?) [2 [3 4] 5])
+
+(defn ttrav
+  "Archetypal function for recursion on subtrees. The `rec` function takes two
+    args, one for the left subtree and one for the right. If the `base` is 
+   a function it will be called on the current leaf."
+  ([rec]
+   (ttrav rec identity))
+  ([rec base]
+   (letfn [(self [tree]
+             (if (utils/atom? tree)
+               (if (fn? base)
+                 (base tree)
+                 base)
+               (rec (self (first tree))
+                    (when-let [more (next tree)]
+                      (self more)))))]
+     self)))
+
+;; copy-tree
+#_(ttrav cons identity)
+
+;; count-leaves
+#_(ttrav (fn [l r]
+           (+ l (or r 1)))
+         1)
+
+;; flatten
+#_(ttrav concat mklist)
+
+(defn trec
+  "Tree recurser. The second arg to trec should be a function of three 
+   arguments: the current object and the two recursers. The latter two will 
+   be closures representing the recursions down the left and right subtrees."
+  ([rec]
+   (trec rec identity))
+  ([rec base]
+   (letfn [(self [tree]
+             (if (utils/atom? tree)
+               (if (fn? base)
+                 (base tree)
+                 base)))])))
+
+;; flatten
+#_(trec (fn [o l r]
+          (concat (l) (r)))
+        mklist)
+
+;; rfind-if, for odd
+#_(trec (fn [o l r]
+          (or (l) (r)))
+        (fn [tree]
+          (and (odd? tree) tree)))
