@@ -167,7 +167,12 @@
              (if (utils/atom? tree)
                (if (fn? base)
                  (base tree)
-                 base)))])))
+                 base)
+               (rec tree
+                    #(self (first tree))
+                    #(when-let [more (next tree)]
+                       (self more)))))]
+     self)))
 
 ;; flatten
 #_(trec (fn [o l r]
