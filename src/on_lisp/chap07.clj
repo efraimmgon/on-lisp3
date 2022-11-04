@@ -70,3 +70,30 @@
              (our-expander (first expr)))
       ((our-expander (first expr)) expr)
       expr))
+
+;;; ----------------------------------------------------------------------------
+;;; 7.7 Macros as Programs
+
+#_(cl-do [[w 3]
+          [x 1 (inc x)]
+          [y 2 (inc y)]
+          [z]]
+         [(> x 10) (prn z) y]
+         (prn x)
+         (prn y))
+
+; should expand into something like
+
+#_(loop [w 3
+         x 1
+         y 2
+         z nil]
+    (if (> x 10)
+      (do (prn z)
+          y)
+      (do (prn x)
+          (prn y)
+          (recur w (inc x) (inc y) z))))
+
+;;; ----------------------------------------------------------------------------
+;;; 7.8 Macro Style
