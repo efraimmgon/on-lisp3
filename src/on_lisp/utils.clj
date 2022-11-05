@@ -1,4 +1,6 @@
-(ns on-lisp.utils)
+(ns on-lisp.utils
+  (:require
+   clojure.pprint))
 
 (defn consp
   "Returns true if object is of type cons; otherwise, returns false."
@@ -14,6 +16,13 @@
         (empty? x)
         false)
     true))
+
+(defmacro mac
+  "Pretty printing for macroexpand-1."
+  [expr]
+  `(clojure.pprint/pprint
+    (macroexpand-1 '~expr)))
+
 
 #_(atom? nil)
 #_(atom? '())
