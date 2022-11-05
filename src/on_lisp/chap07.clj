@@ -157,4 +157,3 @@
 (defmacro foo [x y z]
   `(list ~x (let [x# ~y]
               (list x# ~z))))
-
