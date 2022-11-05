@@ -97,3 +97,11 @@
 
 ;;; ----------------------------------------------------------------------------
 ;;; 7.8 Macro Style
+
+(defmacro our-and [& args]
+  (case (count args)
+    0 true
+    1 (first args)
+    `(if (first args)
+       (our-and ~@(rest args)))))
+
