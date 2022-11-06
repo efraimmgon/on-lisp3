@@ -19,4 +19,3 @@
   `(float
     (/ (+ ~@args)
        ~(count args))))
-
