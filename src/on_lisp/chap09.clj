@@ -76,3 +76,8 @@
    free in the skeleton of the macro expansion, or (b) it is bound by a part 
    of the skeleton in which arguments passed to the macro are either bound 
    or evaluated.")
+
+;;; ----------------------------------------------------------------------------
+;;; 9.5 Avoiding Capture by Prior Evaluation
+
+; Note: this exemple does not apply to Clojure because of 
