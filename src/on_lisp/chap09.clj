@@ -21,13 +21,13 @@
 ;; we would have to get out of our way to make `limit` a simple symbol.
 ;; The idiomatic way to do this is to use a gensym `limit#`.
 
-(defmacro pfor [[var start stop] & body]
-  `(loop [~var ~start
-          ~'limit ~stop] ; in this case, `limit`
-     (when (<= ~var ~'limit)
-       ~@body
-       (recur (inc ~var)
-              ~'limit))))
+#_(defmacro pfor [[var start stop] & body]
+    `(loop [~var ~start
+            ~'limit ~stop] ; in this case, `limit`
+       (when (<= ~var ~'limit)
+         ~@body
+         (recur (inc ~var)
+                ~'limit))))
 
 #_(utils/mac
    (pfor [x 1 5] (pr x)))
@@ -81,3 +81,24 @@
 ;;; 9.5 Avoiding Capture by Prior Evaluation
 
 ; Note: this exemple does not apply to Clojure because of 
+
+;;; ----------------------------------------------------------------------------
+;;; 9.6 Avoiding Capture with Gensyms
+
+;; Vulnerable to capture:
+#_(defmacro pfor [[var start stop] & body]
+    `(loop [~var ~start
+            ~'limit ~stop]
+       (when (<= ~var ~'limit)
+         ~@body
+         (recur (inc ~var)
+                ~'limit))))
+
+;; A correct version:
+(defmacro pfor [[var start stop] & body]
+  `(loop [~var ~start
+          stop# ~stop]
+     (when (<= ~var stop#)
+       ~@body
+       (recur (inc ~var)
+              stop#))))
