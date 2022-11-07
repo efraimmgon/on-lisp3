@@ -61,3 +61,18 @@
 ; This throws an error
 #_(utils/mac (let [lst [:b]]
                (sample-ratio nil lst)))
+
+;;; ----------------------------------------------------------------------------
+;;; 9.3 When Capture Occurs
+
+(comment
+  "Free: A symbol s occurs free in a expression when it is used as a variable 
+   in that expression, but the expression does not create a binding for it."
+
+  "Skeleton: The skeleton of a macro expansion is the whole expansion, minus 
+   anything which was part of an argument in the macro call."
+
+  "Capturable: A symbol is capturable in some macro expansion if (a) it occurs 
+   free in the skeleton of the macro expansion, or (b) it is bound by a part 
+   of the skeleton in which arguments passed to the macro are either bound 
+   or evaluated.")
