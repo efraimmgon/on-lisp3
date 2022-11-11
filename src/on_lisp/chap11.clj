@@ -64,7 +64,52 @@
                    syms)]
      ~@body))
 
-
 #_(utils/mac
    (with-gensyms [x y z]
      (list x y z)))
+
+;;; Combination of cond and let
+
+#_(def cl '[(= 1 2) [x (prn 'a)] [y (prn 'b)]])
+
+; This looks ok
+(defn condlet-binds [vars cl]
+  (mapcat (fn [[sym expr]]
+            [(get vars sym) expr])
+          (next cl)))
+
+; vars has been changed to a map - still need to implement this here
+; this fn is incomplete
+(defn condlet-clause [vars cl bodfn]
+  `[~(first cl) (let [~@(mapcat next vars)]
+                  (let [~@(condlet-binds vars cl)]
+                    (~bodfn ~@(map next vars))))])
+
+; need to check if this is right with condlet-clause
+(defmacro condlet
+  "Takes a vector of bindings clauses, followed by a body of code. Each of 
+   the binding clauses is guarded by a test expression; the body of code will 
+   be evaluated with the bindings specified by the first binding clauses 
+   whose test expression returns true. Variables which occur in some clauses 
+   and not others will be bound to nil if the successful clause does not 
+   specify bindings for them."
+  [clauses & body]
+  (let [bodfn (gensym)
+        vars (->> (mapcat rest clauses)
+                  (map first)
+                  set
+                  (mapcat (fn [s] [s (gensym)]))
+                  (apply hash-map))]
+    `(letfn [(~bodfn [~@(keys vars)]
+               ~@body)]
+       (cond
+         ~@(mapcat (fn [cl]
+                     (condlet-clause vars cl bodfn))
+                   clauses)))))
+
+
+
+(condlet [[(= 1 2) [x (prn 'a)] [y (prn 'b)]]
+          [(= 1 1) [y (prn 'c)] [x (prn 'd)]]
+          [:else [x (prn 'a)] [z (prn 'f)]]]
+         (list x y z))

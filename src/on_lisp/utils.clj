@@ -29,3 +29,11 @@
 #_(atom? [])
 #_(atom? 1)
 #_(atom? [1])
+
+(defmacro with-gensyms
+  "Binds a whole list of variables to gensyms."
+  [syms & body]
+  `(let [~@(mapcat (fn [s]
+                     `[~s (gensym)])
+                   syms)]
+     ~@body))
