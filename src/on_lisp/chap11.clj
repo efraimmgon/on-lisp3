@@ -119,3 +119,17 @@
              [(= 1 1) [y (utils/princ 'c)] [x (utils/princ 'd)]]
              [:else [x (utils/princ 'a)] [z (utils/princ 'f)]]]
             (list x y z)))
+
+;;; ----------------------------------------------------------------------------
+;;; 11.2 The with- Macro
+
+(defmacro with-db [db- & body]
+  `(let [temp# @db]
+     (try
+       (reset! db ~db-)
+       (lock! @db)
+       ~@body
+       (catch Expression e (.getMessage e))
+       (finally
+         (release! db)
+         (reset! db temp#)))))
