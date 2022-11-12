@@ -37,3 +37,7 @@
                      `[~s (gensym)])
                    syms)]
      ~@body))
+
+(defn princ [x]
+  (pr x)
+  x)

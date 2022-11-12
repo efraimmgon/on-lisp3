@@ -70,22 +70,29 @@
 
 ;;; Combination of cond and let
 
+#_(def clauses '[[(= 1 2) [x (prn 'a)] [y (prn 'b)]]
+                 [(= 1 1) [y (prn 'c)] [x (prn 'd)]]
+                 [:else [x (prn 'a)] [z (prn 'f)]]])
 #_(def cl '[(= 1 2) [x (prn 'a)] [y (prn 'b)]])
+#_(def vars '{y G__8222, z G__8223, x G__8224})
+#_(condlet-binds vars cl)
 
-; This looks ok
-(defn condlet-binds [vars cl]
+(defn condlet-binds
+  "Bind the gensym vars to their respective expression"
+  [vars cl]
   (mapcat (fn [[sym expr]]
             [(get vars sym) expr])
           (next cl)))
 
-; vars has been changed to a map - still need to implement this here
-; this fn is incomplete
-(defn condlet-clause [vars cl bodfn]
-  `[~(first cl) (let [~@(mapcat next vars)]
+; (1) Bind the gensym vars to nil in case a vars was not set in the clause.
+(defn condlet-clause
+  "Returns a condlet clause. Also binds the vars to their respective 
+   expressions."
+  [vars cl bodfn]
+  `[~(first cl) (let [~@(mapcat (fn [g] [g nil]) (vals vars))] ; (1)
                   (let [~@(condlet-binds vars cl)]
-                    (~bodfn ~@(map next vars))))])
+                    (~bodfn ~@(vals vars))))])
 
-; need to check if this is right with condlet-clause
 (defmacro condlet
   "Takes a vector of bindings clauses, followed by a body of code. Each of 
    the binding clauses is guarded by a test expression; the body of code will 
@@ -107,9 +114,8 @@
                      (condlet-clause vars cl bodfn))
                    clauses)))))
 
-
-
-(condlet [[(= 1 2) [x (prn 'a)] [y (prn 'b)]]
-          [(= 1 1) [y (prn 'c)] [x (prn 'd)]]
-          [:else [x (prn 'a)] [z (prn 'f)]]]
-         (list x y z))
+#_(utils/mac
+   (condlet [[(= 1 2) [x (utils/princ 'a)] [y (utils/princ 'b)]]
+             [(= 1 1) [y (utils/princ 'c)] [x (utils/princ 'd)]]
+             [:else [x (utils/princ 'a)] [z (utils/princ 'f)]]]
+            (list x y z)))
