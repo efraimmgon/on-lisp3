@@ -133,3 +133,84 @@
        (finally
          (release! db)
          (reset! db temp#)))))
+
+;;; ----------------------------------------------------------------------------
+;;; 11.3 Conditional Evaluation
+
+(defmacro if3
+  "Three-valued logic. Instead of trating nil as false and eveything else as 
+   true, this macro considers three categories of truth: true, false, and
+   uncertain, represented as ?."
+  [test t-case f-case ?-case]
+  (case ~test
+    (nil false) ~f-case
+    ? ~?-case
+    ~t-case))
+
+(defmacro nif
+  "Numeric if. Takes a numeric expression as its first argument and depending 
+   on its sign evaluates one of the remaining three arguments."
+  [expr pos zero neg]
+  `(let [expr# ~expr]
+     (cond (pos? expr#) ~pos
+           (zero? expr#) ~zero
+           :else ~neg)))
+
+#_(map #(nif % :p :z :n) [0 1 -1])
+
+(defmacro in
+  "For testing efficiently for set membership."
+  [obj & choices]
+  (let [insym (gensym)]
+    `(let [~insym ~obj]
+       (or ~@(for [c choices]
+               `(= ~insym ~c))))))
+
+#_(utils/mac
+   (in 2 1 2 3))
+
+(defmacro inq
+  "in queue. A quoting variant of in."
+  [obj & args]
+  `(in ~obj ~@(for [a args]
+                `'~a)))
+
+
+#_(utils/mac (inq 'a d c b a))
+
+(defmacro in-if
+  "Takes a predicate and returns true if any of the args tests positive."
+  [pred & choices]
+  (let [fnsym (gensym)]
+    `(let [~fnsym ~pred]
+       (or ~@(for [c choices]
+               `(~fnsym ~c))))))
+
+#_(utils/mac (in-if odd? 2 4 6 8 9))
+
+(defn >casex [g cl]
+  (let [[k then] cl]
+    (cond (coll? k) `((in ~g ~@k) ~then)
+          (inq k true :else) `(:else ~then)
+          :else (throw (Exception. "bad >case clause")))))
+
+; The > in the name is intended to suggest the arrow notation used to 
+; represent evaluation.
+; Since keys can be Lisp expressions, there is no way to tell if (x y) is a 
+; call or a list of two keys. To avoid ambiguity, keys (other than true and 
+; :else) must always be given in a list, even if there is only one of them.
+(defmacro >case
+  "Like `case`, but with keys which are evaluated before comparison - but it
+   evalutated no more of the keys than it needs to. Keys must always be given
+   in a list, even if there is only one of them."
+  [expr & clauses]
+  (let [g (gensym)]
+    `(let [~g ~expr]
+       (cond ~@(mapcat (fn [cl] (>casex g cl))
+                       (partition 2 clauses))))))
+
+#_(utils/mac
+   (>case (+ 1 1)
+          (:a :b :c) (prn 1)
+          (3 (+ 1 1) 1) (prn 2)
+          :else (prn 3)))
