@@ -246,3 +246,36 @@
 
 #_(utils/mac (do-tuples|o [x y] '[a b c d]
                           (pr (list x y))))
+
+(defn dt-args [len more src]
+  (for [m (range (dec len))]
+    (for [n (range 1 (inc len))]
+      (let [x (+ m n)]
+        (if (>= x len)
+          `(nth ~src ~(- x len))
+          `(nth ~more ~(dec x)))))))
+
+(defmacro do-tuples|c
+  "Evaluates its body with a tuple of variables bound to successive 
+   subsequences of a sequence, then wrap around to the front of the sequence."
+  [params source & body]
+  (when (seq params)
+    (let [src (gensym), more (gensym),
+          bodfn (gensym), len (count params)]
+      `(let [~src ~source]
+         (when (nthnext ~src ~(dec len))
+           (letfn [(~bodfn ~params ~@body)]
+             (loop [~more ~src]
+               (if-not (nthnext ~more ~(dec len))
+                 (do
+                   ~@(mapv (fn [args]
+                             `(~bodfn ~@args))
+                           (dt-args len more src))
+                   nil)
+                 (do (~bodfn ~@(for [n (range 1 (inc len))]
+                                 `(nth ~more ~(dec n))))
+                     (recur (next ~more)))))))))))
+
+#_(utils/mac
+   (do-tuples|c [x y] '[a b c d]
+                (pr (list x y))))
