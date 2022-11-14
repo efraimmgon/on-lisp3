@@ -268,9 +268,9 @@
              (loop [~more ~src]
                (if-not (nthnext ~more ~(dec len))
                  (do
-                   ~@(mapv (fn [args]
-                             `(~bodfn ~@args))
-                           (dt-args len more src))
+                   ~@(map (fn [args]
+                            `(~bodfn ~@args))
+                          (dt-args len more src))
                    nil)
                  (do (~bodfn ~@(for [n (range 1 (inc len))]
                                  `(nth ~more ~(dec n))))
@@ -279,3 +279,17 @@
 #_(utils/mac
    (do-tuples|c [x y] '[a b c d]
                 (pr (list x y))))
+
+(comment
+  "This kind of iteration is often needed in programs which deal with some 
+   notion of a path. The suffixes /o and /c are intended to suggest that the 
+   two versions traverse open and closed paths, respectively. For example, if 
+   points is a list of points and (drawline x y) draws a line between x and y, 
+   then to draw the path from the first point to the last we write"
+
+  ; (do-tuples|o [x y] points (drawline x y))
+
+  "whereas if points is a lisst of the vertices of a polygon, to draw its 
+   perimeter we write")
+
+  ; (do-tuples|c [x y] points (drawline x y))
