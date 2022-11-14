@@ -41,3 +41,21 @@
 (defn princ [x]
   (pr x)
   x)
+
+(defn mapc
+  "Like map, except that the results of applying f are not accumulated. 
+   The list argument is returned."
+  [f & seqs]
+  (when (seq seqs)
+    (loop [remain seqs]
+      (if (some empty? remain)
+        (first seqs)
+        (do (apply f (map first remain))
+            (recur (map next remain)))))))
+
+(comment
+  (def dummy (atom nil))
+  (mapc (fn [& x] (swap! dummy concat x))
+        '[1 2 3 4]
+        '[a b c d e]
+        '[x y z]))

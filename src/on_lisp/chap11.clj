@@ -214,3 +214,35 @@
           (:a :b :c) (prn 1)
           (3 (+ 1 1) 1) (prn 2)
           :else (prn 3)))
+
+;;; ----------------------------------------------------------------------------
+;;; 11.4 Iteration
+
+(defmacro till
+  "Converse of while. Loops while a test expression returns false."
+  [test & body]
+  (while (not test)
+    ~@body))
+
+(defmacro forn [[var start stop] & body]
+  `(loop [~var ~start
+          stop# ~stop]
+     (when-not (> ~var stop#)
+       ~@body
+       (recur (inc ~var) stop#))))
+
+(defmacro do-tuples|o
+  "Evaluates its body with a tuple of variables bound to successive 
+   subsequences of a sequence."
+  [params source & body]
+  (when (seq params)
+    (let [src (gensym)]
+      `(let [~src ~source]
+         (utils/mapc (fn ~params ~@body)
+                     ~@(map (fn [n]
+                              `(nthnext ~src ~n))
+                            (range (count params))))))))
+
+
+#_(utils/mac (do-tuples|o [x y] '[a b c d]
+                          (pr (list x y))))
