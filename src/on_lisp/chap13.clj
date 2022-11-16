@@ -91,3 +91,9 @@
       `(nth (sort > ~lst) ~n))))
 
 #_(nthmost 2 '(2 6 1 5 3 4))
+
+;;; ----------------------------------------------------------------------------
+;;; 13.2 Example: Bezier Curves
+
+; TODO: lots of setf... lets leave this as an exercise for another day
+; (although it seems we can make do with a single atom for pts)
