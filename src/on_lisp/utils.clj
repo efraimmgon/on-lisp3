@@ -59,3 +59,18 @@
         '[1 2 3 4]
         '[a b c d e]
         '[x y z]))
+
+(defn maplist
+  "Like map, except that f is applied to successive subsequences of the 
+   sequences. f is first applied to the sequences themselves, and then to the 
+   rest of each sequence, and then to the rest of the rest of each sequence, 
+   and so on."
+  [f & seqs]
+  (when-let [s (seq seqs)]
+    (lazy-seq
+     (when-not (some empty? s)
+       (cons (apply f s)
+             (apply maplist f
+                    (map rest s)))))))
+
+#_(maplist concat [1 2 3 4] [1 2] [1 2 3])
