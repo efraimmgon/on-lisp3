@@ -47,12 +47,34 @@
 ; (aand (owner x) (address it) (town it))
 
 (defmacro acond
-  ""
+  "Anaphoric cond. Meant for cases where the remainder of a cond clause wants 
+   to use the value returned by the expression."
   [& clauses]
   (when (seq clauses)
     (let [cl1 (take 2 clauses)]
       `(let [sym# ~(first cl1)]
          (if sym#
            (let [~'it sym#]
-             (last cl1))
+             ~(last cl1))
            (acond ~@(drop 2 clauses)))))))
+
+#_(utils/mac (acond (odd? 2) (prn it)
+                    (+ 1 1) (prn it)))
+
+; Note: not much use in clj since we can name anonymous fns.
+(defmacro alambda
+  "Anaphoric lambda; (uses `self`) for referring literally to recursive 
+   functions."
+  [params & body]
+  `(letfn [(~'self ~params ~@body)]
+     ~'self))
+
+#_(utils/mac (alambda [x] (if (zero? x) 1 (* x (self (dec x))))))
+
+; don't know how to implement ablock
+
+#_(ablock :north-pole
+          (utils/princ "ho ")
+          (utils/princ it)
+          (utils/princ it)
+          (:return-from :north-pole))
