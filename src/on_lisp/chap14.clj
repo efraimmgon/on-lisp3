@@ -78,3 +78,8 @@
           (utils/princ it)
           (utils/princ it)
           (:return-from :north-pole))
+
+;;; ----------------------------------------------------------------------------
+;;; 14.2 Failure
+
+; There isn't the concept of multiple values in clj.
