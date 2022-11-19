@@ -12,8 +12,6 @@
 
 (declare rbuild)
 
-#_(build-compose '(list inc Math/round))
-
 (defn build-compose [fns]
   (let [g (gensym)]
     `(fn [~g]
@@ -23,8 +21,6 @@
                       ~(rec (next fns)))
                     g))]
           (rec fns)))))
-
-#_(build-call 'and '(integer? odd?))
 
 (defn build-call [op fns]
   (let [g (gensym)]
@@ -68,3 +64,24 @@
 #_(utils/mac (fn> (and integer? odd?))) ; default case
 #_(utils/mac (fn> (comp list inc Math/round))) ; compose
 #_(utils/mac (fn> (comp (fn [x] (+ x 3)) Math/round))) ; anonymous fn
+
+; intersection
+#_(filter (fn> (and integer? odd?))
+          '[c 3 p 0])
+
+; union
+#_(filter (fn> (or integer? symbol?))
+          '[c 3 p 0.2])
+
+; conditional
+#_(map (fn> (if odd? inc identity))
+       (range 1 7))
+
+; creating a sequence
+#_(map (fn> (list dec identity inc))
+       [1 2 3])
+
+; manipulating a sequence
+#_(remove (fn> (or (and integer? odd?)
+                   (and coll? next)))
+          '[1 [a b] c [d] 2 3.4 [e f g]])
