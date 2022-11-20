@@ -85,3 +85,57 @@
 #_(remove (fn> (or (and integer? odd?)
                    (and coll? next)))
           '[1 [a b] c [d] 2 3.4 [e f g]])
+
+;;; ----------------------------------------------------------------------------
+;;; 15.2 Recursion on Cdrs
+
+; don't really care about recursion on cdrs - it makes the code harder to 
+; understand.
+
+;;; ----------------------------------------------------------------------------
+;;; 15.3 Recursion on Subtrees
+
+; same as above
+
+;;; ----------------------------------------------------------------------------
+;;; 15.4 Lazy Evaluation
+
+(comment
+  "A delay is represented as a two-part structure. The first field indicates 
+   whether the delay has been evaluated yet, and if it has, contains the value. 
+   The second field contains a closure which can be called to find the value 
+   that the delay represents.")
+
+(def unforced (gensym))
+
+(defrecord Delay [forced closure delay?])
+
+(defn make-delay [{:keys [forced closure]}]
+  (atom (->Delay forced closure ::delay)))
+
+(defn delay-p [x]
+  (and (instance? clojure.lang.Atom x)
+       (map? @x)
+       (= ::delay (:delay? @x))))
+
+(defmacro delay*
+  "takes an expression and returns a delay representing its value."
+  [expr]
+  `(let [self# (make-delay {:forced unforced})]
+     (swap! self# assoc :closure
+            (fn []
+              (let [expr# ~expr]
+                (swap! self# assoc :forced expr#)
+                expr#)))
+     self#))
+
+(defn force* [x]
+  (if (delay-p x)
+    (if (= (:forced @x) unforced)
+      ((:closure @x))
+      (:forced @x))
+    x))
+
+#_(let [x 2]
+    (def d (delay* (inc x))))
+#_(force* d)
