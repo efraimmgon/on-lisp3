@@ -129,7 +129,10 @@
                 expr#)))
      self#))
 
-(defn force* [x]
+(defn force*
+  "For ordinary objects it is the identity function, but for delays it is a 
+   demand for the value that the delay represents."
+  [x]
   (if (delay-p x)
     (if (= (:forced @x) unforced)
       ((:closure @x))
