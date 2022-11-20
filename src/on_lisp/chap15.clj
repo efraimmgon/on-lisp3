@@ -106,20 +106,26 @@
    The second field contains a closure which can be called to find the value 
    that the delay represents.")
 
-(def unforced (gensym))
+(def unforced
+  "A gensym representing a Delay that hasn't been forced yet."
+  (gensym))
 
 (defrecord Delay [forced closure delay?])
 
-(defn make-delay [{:keys [forced closure]}]
+(defn make-delay \
+  "Takes a map and returns a Delay wrapped in an Atom."
+  [{:keys [forced closure]}]
   (atom (->Delay forced closure ::delay)))
 
-(defn delay-p [x]
+(defn delay-p
+  "Returns true if x is a Delay."
+  [x]
   (and (instance? clojure.lang.Atom x)
        (map? @x)
        (= ::delay (:delay? @x))))
 
 (defmacro delay*
-  "takes an expression and returns a delay representing its value."
+  "Takes an expression and returns a delay representing its value."
   [expr]
   `(let [self# (make-delay {:forced unforced})]
      (swap! self# assoc :closure
