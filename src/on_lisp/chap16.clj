@@ -27,3 +27,21 @@
          `(abbrev ~@pair))))
 
 #_(utils/mac (abbrevs != not=))
+
+;;; ----------------------------------------------------------------------------
+;;; 16.2 Properties
+
+(defmacro color [x]
+  `(get ~x :color))
+
+(defmacro propmacro [propname]
+  `(defmacro ~propname [~'obj]
+     `(get ~~'obj '~'~propname)))
+
+#_(utils/mac (propmacro color))
+#_(utils/mac (color a))
+
+(defmacro propmacros [& props]
+  `(do
+     ~@(for [p props]
+         `(propmacro ~p))))
