@@ -112,7 +112,7 @@
 
 (defrecord Delay [forced closure delay?])
 
-(defn make-delay \
+(defn make-delay
   "Takes a map and returns a Delay wrapped in an Atom."
   [{:keys [forced closure]}]
   (atom (->Delay forced closure ::delay)))
