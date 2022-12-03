@@ -74,3 +74,26 @@
                     (map rest s)))))))
 
 #_(maplist concat [1 2 3 4] [1 2] [1 2 3])
+
+(defmacro acond
+  "Anaphoric cond. Meant for cases where the remainder of a cond clause wants 
+   to use the value returned by the expression."
+  [& clauses]
+  (when (seq clauses)
+    (let [cl1 (take 2 clauses)]
+      `(let [sym# ~(first cl1)]
+         (if sym#
+           (let [~'it sym#]
+             ~(last cl1))
+           (acond ~@(drop 2 clauses)))))))
+
+#_(utils/mac (acond (odd? 2) (prn it)
+                    (+ 1 1) (prn it)))
+
+(defmacro aif
+  "Anaphoric if. `it` is used to bind the result of `test-form`."
+  [test-form then-form & [else-form]]
+  `(let [~'it ~test-form]
+     (if ~'it ~then-form ~else-form)))
+
+#_(utils/mac (aif (inc 1) it false))
