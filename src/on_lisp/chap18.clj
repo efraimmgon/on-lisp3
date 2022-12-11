@@ -33,6 +33,11 @@
 ; determines whether a pattern is an atom. `n` is the index of the first
 ; element in the sequence to be matched.
 (defn destruc
+  "Returns a vector of bindings for the given pattern and sequence. The  
+   bindings are in the order they
+  appear in the pattern. The optional `atom?` predicate determines whether a
+  pattern is an atom. The optional `n` is the index of the first element in
+  the sequence to be matched."
   [pat sequence & kwargs]
   (let [{:keys [atom? n] :or {atom? utils/atom?, n 0}}
         (apply hash-map kwargs)]
@@ -56,6 +61,7 @@
 #_(destruc '[a b c] [1 2 3])
 #_(destruc '[a b & c] [1 2 3])
 #_(destruc '[a [b c] d] [1 [2 3] 4])
+#_(destruc '(?x 'a) (gensym) :atom? simple?)
 
 ; Resembles `destructuring-bind`, but works for any kind of sequence. The 
 ; second argument can be alist, a vector, or any combination thereof.
@@ -142,12 +148,12 @@
 #_(vars-in '(?x (?y (?z))))
 
 (defmacro if-match-v0
-  "Takes a pattern and a sequence, and establishes bindings by comparing them. 
+  "Takes a pattern and a coll, and establishes bindings by comparing them. 
    Also takes a then clause to be evaluated, with new bindings, if the match 
    succeeds; and an else clause to be evaluated if the match fails."
-  [pat sequ then & [else]]
+  [pat coll then & [else]]
   (let [gbindings (gensym)]
-    `(if-let [~gbindings (match '~pat '~sequ)]
+    `(if-let [~gbindings (match '~pat '~coll)]
        (let [~@(mapcat (fn [v]
                          `(~v (bindings '~v ~gbindings)))
                        (vars-in then utils/atom?))]
@@ -164,29 +170,50 @@
 ; quote. With the new matching operator, we will be able to use lists as 
 ; pattern elements, simply by quoting them.
 (defn simple?
+  "Returns true if `x` is a simple pattern element. A simple element is either 
+  an atom or a list whose first element is `quote`."
   [x]
   (or (utils/atom? x)
       (= (first x) 'quote)))
 
+#_(simple? 'x)
+#_(simple? (gensym))
+#_(simple? '(x y z))
+#_(simple? '(quote x))
+
 (defn length-test
   "Returns a test for the length of a pattern. The test is either 
-  (= (count pat) (count rest)) or (= (count pat) (- (count rest) 2)). 
-  The latter is used when the last element of rest is a sequence or 
+  (= (count pat) (count more)) or (= (count pat) (- (count more) 2)). 
+  The latter is used when the last element of more is a sequence or 
   a call to nth."
-  [pat rest]
-  (let [fin (-> rest last ffirst)]
-    (if (or (coll? fin) (= fin 'nth))
-      `(= (count ~pat) ~(count rest))
-      `(= (count ~pat) ~(- (count rest) 2)))))
+  [pat more]
+  (let [fin (-> more last first)
+        more-len (count (partition 2 more))]
+    (if (or (coll? fin) (= fin `nth))
+      `(= (count ~pat) ~more-len)
+      `(= (count ~pat) ~(- more-len 2)))))
+
+#_(def more
+    '[?x (clojure.core/nth G__9175 0)
+      (quote a) (clojure.core/nth G__9175 1)])
+#_(length-test 'a more)
 
 (defn gensym?
   "Returns true if `s` is a gensym, false otherwise. A gensym is a symbol 
   whose name starts with the string \"G__\"."
   [s]
   (and (symbol? s)
-       (clojure.string/starts-with? "G__" (name s))))
+       (clojure.string/starts-with? (name s) "G__")))
 
-
+; This function considers four cases.
+; (1) If the pattern argument is a gensym, then it is one of the invisible 
+; variables created by destruct to hold sublists, and all we need to do at 
+; runtime is test that it has the right length. (2) If the pattern is a wildcard
+; (_), no code need be generated. (3) If the pattern is a variable, match1 
+; generates code to match it against, or set it to, the corresponding part 
+; of the sequence given at runtime. (4) Otherwise, the pattern is taken to be
+; a literal value, and match1 generates code to compare it with the 
+; corresponding part of the sequence.
 (defn match1
   "Takes a list of references, a then clause, and an else clause. 
   The references are a sequence of pairs of pattern and expression. 
@@ -196,26 +223,32 @@
   is evaluated if the match fails. The then clause is evaluated with 
   bindings established by the match. The else clause is evaluated with 
   no bindings."
-  [refs then else]
-  (dbind [[pat expr & rest] refs]
-         (cond (gensym? pat)
-               `(let [~pat ~expr]
-                  (if (and (coll? ~pat)
-                           ~(length-test pat rest))
-                    ~then
-                    ~else))
+  [[pat expr & more :as refs] then else]
+        ; (1)
+  (cond (gensym? pat)
+        `(let [~pat ~expr]
+           (if (and (coll? ~pat)
+                    ~(length-test pat more))
+             ~then
+             ~else))
+               ; (2)
+        (= pat '_) then
+               ; (3)
+        (varsym? pat)
+        (let [ge (gensym)]
+          `(let [~ge ~expr]
+             (if (or (gensym? ~pat) (= ~pat ~ge))
+               (let [~pat ~ge]
+                 ~then)
+               ~else)))
+               ; (4)
+        :else `(if (= ~pat ~expr) ~then ~else)))
 
-               (= pat '_) then
 
-               (varsym? pat)
-               (let [ge (gensym)]
-                 `(let [~ge ~expr]
-                    (if (or (gensym? ~pat) (= ~pat ~ge))
-                      (let [~pat ~ge]
-                        ~then)
-                      ~else)))
 
-               :else `(if (= ~pat ~expr) ~then ~else))))
+#_(match1 '((?x ?y ?x ?y) '(h1 ho h1 ho))
+          '[?x ?y]
+          nil)
 
 "Returns a match expression for a sequence of references, using match1."
 (defn gen-match [refs then else]
@@ -229,42 +262,46 @@
 ; Takes the same arguments as if-match; the only difference is that it 
 ; establishes no new bindings for pattern variables.
 (defmacro pat-match
-  "Takes a pattern, a sequence, a then clause, and an else clause. 
+  "Takes a pattern, a coll, a then clause, and an else clause. 
    The pattern is a pattern variable, a literal, or a pattern structure. 
-   The sequence is an expression to be matched against the pattern. 
+   The coll is an expression to be matched against the pattern. 
    The then clause is evaluated if the match succeeds, and the else clause 
    is evaluated if the match fails. The then clause is evaluated with 
    bindings established by the match. The else clause is evaluated with 
    no bindings."
-  [pat sequence then else]
+  [pat coll then else]
   (if (simple? pat)
-    (match1 `((~pat ~sequence)) then else)
+    (match1 `((~pat ~coll)) then else)
     (let [gseq (gensym)
           gelse (gensym)]
       `(letfn [(~gelse [] ~else)]
-         ~(gen-match (into [gseq sequence]
+         ~(gen-match (into [gseq coll]
                            (destruc pat gseq :atom? simple?))
                      then
                      `(~gelse))))))
 
 (defmacro if-match
-  "Takes a pattern and a sequence, and establishes bindings by comparing them. 
+  "Takes a pattern and a coll, and establishes bindings by comparing them. 
    Also takes a then clause to be evaluated, with new bindings, if the match 
    succeeds; and an else clause to be evaluated if the match fails."
-  [pat sequence then & [else]]
+  [pat coll then & [else]]
   `(let [~@(mapcat (fn [v]
                      `(~v '~(gensym)))
                    (vars-in pat simple?))]
-     (pat-match ~pat ~sequence ~then ~else)))
+     (pat-match ~pat ~coll ~then ~else)))
 
 #_(utils/mac (if-match (?x ?y ?x ?y) (h1 ho h1 ho)
                        [?x ?y]
                        nil))
+#_(utils/mac
+   (if-match (?x ?y ?x ?y) [:h1 :ho :h1 :ho]
+             [?x ?y]
+             nil))
+#_(utils/mac
+   (pat-match (?x) [1]
+              [?x]
+              nil))
 ; the same as above, but with pat-match
 #_(utils/mac (pat-match (?x ?y ?x ?y) (h1 ho h1 ho)
                         [?x ?y]
                         nil))
-#_(utils/mac
-   (clojure.core/let
-    [?x 'G__8306 ?y 'G__8307]
-     (on-lisp.chap18/pat-match (?x ?y ?x ?y) (h1 ho h1 ho) [?x ?y] nil)))
