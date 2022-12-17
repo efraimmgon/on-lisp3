@@ -61,7 +61,6 @@
 #_(destruc '[a b c] [1 2 3])
 #_(destruc '[a b & c] [1 2 3])
 #_(destruc '[a [b c] d] [1 [2 3] 4])
-#_(destruc '(?x 'a) (gensym) :atom? simple?)
 
 ; Resembles `destructuring-bind`, but works for any kind of sequence. The 
 ; second argument can be alist, a vector, or any combination thereof.
@@ -181,6 +180,8 @@
 #_(simple? '(x y z))
 #_(simple? '(quote x))
 
+; (1) Unlike the original version, we need to use partition because `more`
+; is a flat sequence, not a list of lists.
 (defn length-test
   "Returns a test for the length of a pattern. The test is either 
   (= (count pat) (count more)) or (= (count pat) (- (count more) 2)). 
@@ -188,7 +189,7 @@
   a call to nth."
   [pat more]
   (let [fin (-> more last first)
-        more-len (count (partition 2 more))]
+        more-len (count (partition 2 more))] ; (1)
     (if (or (coll? fin) (= fin `nth))
       `(= (count ~pat) ~more-len)
       `(= (count ~pat) ~(- more-len 2)))))
@@ -223,26 +224,27 @@
   is evaluated if the match fails. The then clause is evaluated with 
   bindings established by the match. The else clause is evaluated with 
   no bindings."
-  [[pat expr & more :as refs] then else]
-        ; (1)
-  (cond (gensym? pat)
-        `(let [~pat ~expr]
-           (if (and (coll? ~pat)
-                    ~(length-test pat more))
-             ~then
-             ~else))
+  [refs then else]
+  (dbind [[pat expr & more] refs]
+               ; (1)
+         (cond (gensym? pat)
+               `(let [~pat ~expr]
+                  (if (and (coll? ~pat)
+                           ~(length-test pat more))
+                    ~then
+                    ~else))
                ; (2)
-        (= pat '_) then
+               (= pat '_) then
                ; (3)
-        (varsym? pat)
-        (let [ge (gensym)]
-          `(let [~ge ~expr]
-             (if (or (gensym? ~pat) (= ~pat ~ge))
-               (let [~pat ~ge]
-                 ~then)
-               ~else)))
+               (varsym? pat)
+               (let [ge (gensym)]
+                 `(let [~ge ~expr]
+                    (if (or (gensym? ~pat) (= ~pat ~ge))
+                      (let [~pat ~ge]
+                        ~then)
+                      ~else)))
                ; (4)
-        :else `(if (= ~pat ~expr) ~then ~else)))
+               :else `(if (= ~pat ~expr) ~then ~else))))
 
 
 
@@ -290,7 +292,7 @@
                    (vars-in pat simple?))]
      (pat-match ~pat ~coll ~then ~else)))
 
-#_(utils/mac (if-match (?x ?y ?x ?y) (h1 ho h1 ho)
+#_(utils/mac (if-match (?x ?y ?x ?y) '(h1 ho h1 ho)
                        [?x ?y]
                        nil))
 #_(utils/mac
@@ -298,10 +300,19 @@
              [?x ?y]
              nil))
 #_(utils/mac
-   (pat-match (?x) [1]
-              [?x]
+   (if-match (?x (1 & ?y) & ?x) '((a b) (1 2 3) a b)
+             [?x ?y]))
+
+#_(utils/mac
+   (pat-match (?x (1 & ?y) & ?x) '((a b) (1 2 3) a b)
+              [?x ?y]
               nil))
-; the same as above, but with pat-match
-#_(utils/mac (pat-match (?x ?y ?x ?y) (h1 ho h1 ho)
-                        [?x ?y]
-                        nil))
+#_(utils/mac
+   (pat-match (?x & ?y) '(1 2 3)
+              [?x ?y]
+              nil))
+
+#_(utils/mac
+   (if-match (?x 2 & ?y) '(1 2 3 4)
+             [?x ?y]
+             nil))
