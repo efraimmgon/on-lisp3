@@ -57,4 +57,11 @@
 ;;; ----------------------------------------------------------------------------
 ;;; 19.2 Pattern-Matching Queries
 
-
+; Syntax of queries:
+; <query>    : (<symbol> <argument>*) 
+;            : (not <query>)
+;            : (and <query>*)
+;            : (or <query>*)
+; <argument> : ?<symbol>
+;            : <symbol>
+;            : <number>  
