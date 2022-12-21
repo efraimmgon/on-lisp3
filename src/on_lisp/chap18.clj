@@ -62,6 +62,8 @@
 #_(destruc '[a b & c] [1 2 3])
 #_(destruc '[a [b c] d] [1 [2 3] 4])
 
+#_(destruc '(?x (?z & ?y) & ?x) '((a b) (1 2 3) a b))
+
 ; Resembles `destructuring-bind`, but works for any kind of sequence. The 
 ; second argument can be alist, a vector, or any combination thereof.
 (defmacro dbind
@@ -192,7 +194,7 @@
         more-len (count (partition 2 more))] ; (1)
     (if (or (coll? fin) (= fin `nth))
       `(= (count ~pat) ~more-len)
-      `(= (count ~pat) ~(- more-len 2)))))
+      `(> (count ~pat) ~(- more-len 2)))))
 
 #_(def more
     '[?x (clojure.core/nth G__9175 0)
@@ -302,9 +304,8 @@
 #_(utils/mac
    (if-match (?x (1 & ?y) & ?x) '((a b) (1 2 3) a b)
              [?x ?y]))
-
 #_(utils/mac
-   (pat-match (?x (1 & ?y) & ?x) '((a b) (1 2 3) a b)
+   (pat-match (?x (?z & ?y) & ?x) '((a b) (1 2 3) a b)
               [?x ?y]
               nil))
 #_(utils/mac
