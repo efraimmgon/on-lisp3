@@ -109,6 +109,11 @@
 ; values to variables, called bindings, in the paremeter binds. If the match  
 ; is successful, returns the bindings generated, otherwise returns nil.
 (defn match
+  "Compares its arguments element by element, building up assignment of  
+   values to variables, called bindings, in the paremeter binds. If the match
+   is successful, returns the bindings generated, otherwise returns nil.
+   Like Prolog, match treats _ (underscore) as a wild-card. It matches 
+   everything, and has no effect on the bindings."
   ([x y]
    (match x y {}))
   ([x y binds]

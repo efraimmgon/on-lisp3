@@ -76,12 +76,17 @@
   ([pred args]
    (lookup pred args {}))
   ([pred args binds]
-   (mapcat (fn [x]
-             (when-let [it (chap18/match x args binds)]
-               (list it)))
+   (mapcat (fn [row]
+             (when-let [bindings (chap18/match row args binds)]
+               (list bindings)))
            (db-query pred))))
 
-#_(lookup 'painter '(?x ?y english))
+#_(lookup 'painter '(?fname ?lname english))
+#_(def row '(hogarth william english))
+#_(def row '(reynolds joshua english))
+#_(def args '(?lname 1697 ?death))
+#_(def binds '{?lname hogarth, ?fname william, ?nat english})
+#_(def binds '{?lname reynolds, ?fname joshua, ?nat english})
 
 (declare interpret-query)
 
@@ -107,8 +112,8 @@
   [clauses binds]
   (if (empty? clauses)
     (list binds)
-    (mapcat (fn [b]
-              (interpret-query (first clauses) b))
+    (mapcat (fn [bindings]
+              (interpret-query (first clauses) bindings))
             (interpret-and (next clauses) binds))))
 
 #_(interpret-and '((dates ?fname 1697 ?death) (painter ?fname ?mname ?lname)) {})
@@ -129,8 +134,8 @@
      (lookup (first expr) (next expr) binds))))
 
 #_(interpret-query
-   '(and (painter ?fname ?mname ?lname)
-         (dates ?fname 1697 ?death)))
+   '(and (painter ?lname ?fname ?nat)
+         (dates ?lname 1697 ?death)))
 
 (comment
   "Provides a clean way of using the query interpreter. It takes as its first
@@ -155,7 +160,24 @@
 (fact dates reynolds 1723 1792)
 
 ; The first name and nationality of every painter called Hogarth.
-(with-answer (painter hogarth ?x ?y)
-  (println ?x ?y))
+#_(with-answer (painter hogarth ?x ?y)
+    (println ?x ?y))
 
-; The last name of eery painter born in 1697.
+; The last name of every painter born in 1697.
+#_(with-answer (and (painter ?x _ _)
+                    (dates ?x 1697 _))
+    (pr (list ?x)))
+
+; The last name and year of birth of everyone who died in 1772 or 1792.
+#_(with-answer (or (dates ?x ?y 1772)
+                   (dates ?x ?y 1792))
+    (pr (list ?x ?y)))
+
+; The last name of every English painter not born the same year as a
+; Venetian one.
+
+#_(with-answer (and (painter ?x _ english)
+                    (dates ?x ?b n)
+                    (not (and (painter ?x2 _ venetian)
+                              (dates ?x2 ?b _))))
+    (pr (list ?x)))
